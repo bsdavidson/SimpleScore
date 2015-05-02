@@ -1,0 +1,31 @@
+{
+  "name": "SimpleScore",
+  "main": "server.js",
+  "dependencies": {
+    "express": "~4.0.0",
+    "mongoose": "~3.6.13",
+    "body-parser": "~1.0.1"
+  },
+  "description": "A simple Node server for adding a leaderboard functionality to a game.",
+  "version": "1.0.0",
+  "devDependencies": {},
+  "scripts": {
+    "test": "grunt lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bsdavidson/SimpleScore.git"
+  },
+  "keywords": [
+    "leaderboard",
+    "nodejs",
+    "api",
+    "scoreboard"
+  ],
+  "author": "Brian Davidson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bsdavidson/SimpleScore/issues"
+  },
+  "homepage": "https://github.com/bsdavidson/SimpleScore"
+}
