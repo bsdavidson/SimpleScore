@@ -2,16 +2,15 @@ var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
 
-// CONFIG - Define a dbserver.js file with the following syntax:
-//
-// var Server =  {
-//   'username': 'mongoDBusername',
-//   'password': 'mongoDBpassword',
-//   'server': 'mongoDBserverHost'
-// };
-//
-// module.exports = Server;
-var config = require('./dbserver');
+var config = {
+  'username': process.env.DB_USERNAME,
+  'password': process.env.DB_PASSWORD,
+  'server': process.env.DB_HOST
+};
+
+if (!config.server || !config.username || !config.password) {
+  throw new Exception('Config environment variables not set');
+}
 
 var mongoose = require('mongoose');
 mongoose.connect('mongodb://' + config.username + ':' + config.password + '@' + config.server);
