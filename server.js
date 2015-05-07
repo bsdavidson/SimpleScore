@@ -51,7 +51,8 @@ router.route('/scores')
     var score = new Score();
     score.serverId = req.body.serverId;
     score.gameId = req.body.gameId;
-    score.playerName  = req.body.playerName;
+    score.playerName = req.body.playerName;
+    score.playerName = score.playerName.substring(0, 8);
     score.score = req.body.score;
     score.save(function(err) {
       if (err) {
