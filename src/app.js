@@ -1,18 +1,23 @@
 /* jshint node: true */
-
 'use strict';
 
+var server = require('./server');
+
+server.start();
+
 var express = require('express');
+var app = express();
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
+var SS;
 
-var app = exports.app = express();
 
 mongoose.connect(process.env.MONGOLAB_URI);
 
-var db = exports.db = mongoose.connection;
+var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'conection error'));
 db.once('open', function(callback) {
+  SS.connectStatus = 1;
   console.log('GOOD');
 });
 
@@ -32,6 +37,8 @@ app.all('/*', function(req, res, next) {
     next();
   }
 });
+
+var port = process.env.PORT || 8080;
 
 // Routes ===================
 var router = express.Router();
@@ -93,24 +100,11 @@ router.route('/scores/:serverId/game/:gameId')
       }
       res.json(scores);
     });
-  })
-  .delete(function(req, res) {
-    Score.remove({
-      _id: req.params.gameId
-    }, function(err, score) {
-      if (err) {
-        res.send(err);
-      }
-      res.json({message: 'Score Deleted'});
-    });
   });
 
 // Register Routes ====================
 app.use('/api', router);
 
 // Start
-if (__filename === process.argv[1]) {
-  var port = process.env.PORT || 8080;
-  app.listen(port);
-  console.log('Get your stuff on port ' + port);
-}
+app.listen(port);
+console.log('Get your stuff on port ' + port);
