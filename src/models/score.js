@@ -1,7 +1,8 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+'use strict';
 
-var ScoreSchema = new Schema({
+var mongoose = require('mongoose');
+
+var ScoreSchema = new mongoose.Schema({
   serverId: String,
   gameId: String,
   gameDate: {type: Date, default: Date.now},
