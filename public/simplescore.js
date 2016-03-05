@@ -37,7 +37,7 @@
       var xmlHttp = new XMLHttpRequest();
       xmlHttp.open('POST', this.scoreServer + '/api/scores', true);
       xmlHttp.setRequestHeader('Content-Type', 'application/json');
-      xmlHttp.send(JSON.dumps({
+      xmlHttp.send(JSON.stringify({
         serverId: this.serverId,
         gameId: this.gameId,
         playerName: playerName,
