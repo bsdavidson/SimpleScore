@@ -26,6 +26,7 @@
 
   var SS = window.SS = {
     currentScores: [],
+    scoreServer: '//simplescore.herokuapp.com',
 
     /**
     * Submit a new score to the API.
@@ -68,6 +69,7 @@
         '/api/scores/' + encodeURIComponent(this.serverId) +
         '/game/' + encodeURIComponent(this.gameId)
       ) + '?t=' + Math.random();
+
       var xmlHttp = new XMLHttpRequest();
       xmlHttp.onreadystatechange = function() {
         if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
@@ -77,7 +79,7 @@
           }
         }
       }.bind(this);
-      xmlHttp.open(url, true);
+      xmlHttp.open('GET', url, true);
       xmlHttp.send();
     }
   };
