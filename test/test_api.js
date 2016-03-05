@@ -1,10 +1,33 @@
 'use strict';
 
+var assert = require('chai').assert;
 var request = require('supertest');
 var app = require('../src/app').app;
 var db = require('../src/db');
 
-describe('Simple Score Server', function() {
+var Score = require('../src/models/score');
+
+function cleanScore(score) {
+  if (!score) {
+    return;
+  }
+  ['__v', '_id', 'gameDate'].forEach(function(key) {
+    assert.isDefined(score[key]);
+    delete score[key];
+  });
+}
+
+function cleanScores(scores) {
+  if (!scores || !scores.forEach) {
+    return;
+  }
+  scores.forEach(function(score) {
+    cleanScore(score);
+  });
+}
+
+describe('SimpleScore API', function() {
+  // Connect to the database before running tests.
   before(function(done) {
     try {
       db.requireMongoUri();
@@ -21,11 +44,51 @@ describe('Simple Score Server', function() {
     });
   });
 
+  // Disconnect from the database after running tests.
   after(function(done) {
     if (db.connection) {
       db.connection.close();
     }
     done();
+  });
+
+  // Clear out any data from the previous tests.
+  beforeEach(function(done) {
+    Score.remove({}, function(err) {
+      if (err) {
+        throw err;
+      }
+      done();
+    });
+  });
+
+  // Create some test scores.
+  beforeEach(function(done) {
+    Score.create([
+      {
+        serverId: 'server1',
+        gameId: 'game1',
+        playerName: 'player1',
+        score: 1000
+      },
+      {
+        serverId: 'server1',
+        gameId: 'game1',
+        playerName: 'player2',
+        score: 2000
+      },
+      {
+        serverId: 'server2',
+        gameId: 'game1',
+        playerName: 'player1',
+        score: 3000
+      }
+    ], function(err) {
+      if (err) {
+        throw err;
+      }
+      done();
+    });
   });
 
   describe('GET /api', function() {
@@ -46,7 +109,15 @@ describe('Simple Score Server', function() {
           playerName: 'gaben',
           score: 9000,
         })
-        .expect(200, done);
+        .expect(function(res) {
+          cleanScore(res.body);
+        })
+        .expect(200, {
+          serverId: 'test',
+          gameId: 'test',
+          playerName: 'gaben',
+          score: 9000
+        }, done);
     });
   });
 
@@ -54,7 +125,29 @@ describe('Simple Score Server', function() {
     it('returns a list of scores', function(done) {
       request(app)
         .get('/api/scores')
-        .expect(200, done);
+        .expect(function(res) {
+          cleanScores(res.body);
+        })
+        .expect(200, [
+          {
+            serverId: 'server1',
+            gameId: 'game1',
+            playerName: 'player1',
+            score: 1000
+          },
+          {
+            serverId: 'server1',
+            gameId: 'game1',
+            playerName: 'player2',
+            score: 2000
+          },
+          {
+            serverId: 'server2',
+            gameId: 'game1',
+            playerName: 'player1',
+            score: 3000
+          }
+        ], done);
     });
   });
 });

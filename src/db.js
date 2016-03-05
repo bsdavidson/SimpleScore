@@ -11,7 +11,6 @@ function connect(done) {
     done(err);
   });
   mongoose.connection.once('open', function() {
-    console.log('Mongoose connected');
     done();
   });
 }

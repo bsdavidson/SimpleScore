@@ -1,62 +1,84 @@
-// To Use:
-// Add to your JS file:
-// SS.scoreServer = 'http://simplescore.herokuapp.com';
-// SS.gameId = 'DB5K';
-// SS.serverId = '320B';
-
-// add the simplescore.js file before your existing scripts in your index.html.
-
-// In your game code:
-// Get existing scores in Array - var scores = SS.getScores(maxScores);
-// Submit New score - SS.submitScore(playerName, score);
-
+/**
+* To use, add the script tag to your page:
+*
+*     <script src="//simplescore.herokuapp.com/simplescore.js"></script>
+*
+* Then configure it:
+*
+*     SS.gameId = 'DB5K';
+*     SS.serverId = '320B';
+*
+* And, in your game code, you can submit a new score:
+*
+*     var playerName = 'jimbob';
+*     var score = 9000;
+*     SS.submitScore(playerName, score);
+*
+* Or lookup the existing scores:
+*
+*     var maxScores = 10;
+*     SS.getScores(maxScores, function(scores) {
+*        console.log(scores);
+*     });
+*/
 (function() {
+  'use strict';
+
   var SS = window.SS = {
     currentScores: [],
-    submitScore: function(player, score) {
-      var xmlhttp = new XMLHttpRequest();
-      xmlhttp.open('POST', SS.scoreServer + '/api/scores', true);
-      xmlhttp.setRequestHeader('Content-type',
-                               'application/x-www-form-urlencoded');
-      xmlhttp.send('serverId=' + SS.serverId + '&gameId=' + SS.gameId +
-                   '&playerName=' + player + '&score=' + score);
+
+    /**
+    * Submit a new score to the API.
+    *
+    * @param {string} playerName Player's name.
+    * @param {number} score Player's score.
+    */
+    submitScore: function(playerName, score) {
+      var xmlHttp = new XMLHttpRequest();
+      xmlHttp.open('POST', this.scoreServer + '/api/scores', true);
+      xmlHttp.setRequestHeader('Content-Type', 'application/json');
+      xmlHttp.send(JSON.dumps({
+        serverId: this.serverId,
+        gameId: this.gameId,
+        playerName: playerName,
+        score: score
+      }));
     },
-    getScores: function(maxScores) {
-      var xmlhttp = new XMLHttpRequest();
-      xmlhttp.onreadystatechange = function() {
-        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-          SS.scores = xmlhttp.responseText;
-          SS.scores = JSON.parse(SS.scores);
-          SS.currentScores = SS._returnTable();
-          // TODO: Figure out wtf
-          SS.currentScores.sort(function(a, b) {
-            return a.score - b.score;
-          });
-          if (SS.currentScores.length > maxScores) {
-            var del = SS.currentScores.length - maxScores;
-            console.log('cutting!', del);
-            SS.currentScores.splice(0, del);
-            console.log(SS.currentScores.length);
-          }
-          SS.currentScores.sort(function(a, b) {
-            return b.score - a.score;
-          });
-          console.log(SS.currentScores);
-        }
-      };
-      xmlhttp.open('GET', SS.scoreServer + '/api/scores/' + SS.serverId +
-        '/game/' + SS.gameId + '?t=' + Math.random(), true);
-      xmlhttp.send();
-    },
-    _returnTable: function() {
-      var scoreArray = [];
-      for (var key in SS.scores) {
-        if (SS.scores.hasOwnProperty(key)) {
-          var obj = SS.scores[key];
-          scoreArray.push({'name': obj.playerName, 'score': obj.score});
-        }
+
+    /**
+    * Fetch the scores from the API.
+    *
+    * @param {number} maxScores Maximum number of scores to retrieve.
+    * @param {function} callback Function to call when scores have been
+    *     retrieved.
+    */
+    getScores: function(maxScores, callback) {
+      function parseScores(responseText) {
+        var scores = JSON.parse(responseText).map(function(score) {
+          return {name: score.playerName, score: score.score};
+        });
+        scores.sort(function(a, b) {
+          return b.score - a.score;
+        });
+        return scores.slice(0, maxScores);
       }
-      return scoreArray;
+
+      var url = (
+        this.scoreServer +
+        '/api/scores/' + encodeURIComponent(this.serverId) +
+        '/game/' + encodeURIComponent(this.gameId)
+      ) + '?t=' + Math.random();
+      var xmlHttp = new XMLHttpRequest();
+      xmlHttp.onreadystatechange = function() {
+        if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
+          this.currentScores = parseScores(xmlHttp.responseText);
+          if (callback) {
+            callback(this.currentScores);
+          }
+        }
+      }.bind(this);
+      xmlHttp.open(url, true);
+      xmlHttp.send();
     }
   };
 })();
